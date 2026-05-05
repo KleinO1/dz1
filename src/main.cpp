@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <queue>
 #include <thread>
@@ -19,7 +20,9 @@ void rabotaPotoka(int id, std::queue<int>& ochered, std::mutex& mtx) {
             ochered.pop();
         }
 
-        std::cout << "Поток " << id << " обработал задачу "
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        std::cout << "Поток " << id << " завершил задачу "
                   << zadacha << std::endl;
     }
 }
@@ -29,7 +32,7 @@ int main() {
     std::mutex mtx;
     std::vector<std::thread> potoki;
 
-    for (int i = 1; i <= 10; ++i) {
+    for (int i = 1; i <= 20; ++i) {
         ochered.push(i);
     }
 
@@ -43,7 +46,7 @@ int main() {
         potoki[i].join();
     }
 
-    std::cout << "Все потоки завершили работу" << std::endl;
+    std::cout << "Все потоки закончили работу" << std::endl;
 
     return 0;
 }
