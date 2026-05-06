@@ -5,6 +5,16 @@
 #include <vector>
 #include <mutex>
 
+const int tasksCount = 20;
+const int threadsCount = 3;
+const int taskDelaySeconds = 1;
+
+void dobavitZadachi(std::queue<int>& ochered) {
+    for (int i = 1; i <= tasksCount; ++i) {
+        ochered.push(i);
+    }
+}
+
 void rabotaPotoka(int id, std::queue<int>& ochered, std::mutex& mtx) {
     while (true) {
         int zadacha = 0;
@@ -20,7 +30,7 @@ void rabotaPotoka(int id, std::queue<int>& ochered, std::mutex& mtx) {
             ochered.pop();
         }
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::seconds(taskDelaySeconds));
 
         std::cout << "Поток " << id << " завершил задачу "
                   << zadacha << std::endl;
@@ -32,11 +42,9 @@ int main() {
     std::mutex mtx;
     std::vector<std::thread> potoki;
 
-    for (int i = 1; i <= 20; ++i) {
-        ochered.push(i);
-    }
+    dobavitZadachi(ochered);
 
-    for (int i = 1; i <= 3; ++i) {
+    for (int i = 1; i <= threadsCount; ++i) {
         potoki.push_back(std::thread(rabotaPotoka, i,
                                      std::ref(ochered),
                                      std::ref(mtx)));
