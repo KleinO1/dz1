@@ -3,6 +3,7 @@
 #include <thread>
 #include <vector>
 #include <mutex>
+#include <string>
 
 #include "TaskQueue.h"
 
@@ -16,6 +17,11 @@ void dobavitZadachi(TaskQueue& queue) {
     }
 
     queue.stop();
+}
+
+void printline(const std::string& text, std::mutex& coutmutex) {
+    std::lock_guard<std::mutex> lock(coutmutex);
+    std::cout << text << std::endl;
 }
 
 void printresult(int id, int zadacha, std::mutex& coutmutex) {
@@ -65,7 +71,7 @@ int main() {
     dobavitZadachi(queue);
     joinworkers(potoki);
 
-    std::cout << "Все потоки закончили работу" << std::endl;
+    printline("Все потоки закончили работу", coutmutex);
 
     return 0;
 }
