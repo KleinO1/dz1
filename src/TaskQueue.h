@@ -7,6 +7,8 @@
 
 class TaskQueue {
 public:
+    TaskQueue();
+
     void push(int zadacha);
     bool pop(int& zadacha);
     void stop();
@@ -15,7 +17,7 @@ private:
     std::queue<int> ochered;
     std::mutex mtx;
     std::condition_variable cv;
-    bool done = false;
+    bool closed;
 };
 
 #endif

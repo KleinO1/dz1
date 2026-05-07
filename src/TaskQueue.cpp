@@ -1,8 +1,16 @@
 #include "TaskQueue.h"
 
+TaskQueue::TaskQueue() : closed(false) {
+}
+
 void TaskQueue::push(int zadacha) {
     {
         std::lock_guard<std::mutex> lock(mtx);
+
+        if (closed) {
+            return;
+        }
+
         ochered.push(zadacha);
     }
 
@@ -13,10 +21,10 @@ bool TaskQueue::pop(int& zadacha) {
     std::unique_lock<std::mutex> lock(mtx);
 
     cv.wait(lock, [this]() {
-        return !ochered.empty() || done;
+        return !ochered.empty() || closed;
     });
 
-    if (ochered.empty() && done) {
+    if (ochered.empty() && closed) {
         return false;
     }
 
@@ -29,7 +37,12 @@ bool TaskQueue::pop(int& zadacha) {
 void TaskQueue::stop() {
     {
         std::lock_guard<std::mutex> lock(mtx);
-        done = true;
+
+        if (closed) {
+            return;
+        }
+
+        closed = true;
     }
 
     cv.notify_all();
