@@ -21,7 +21,7 @@ void dobavitZadachi(TaskQueue& queue) {
 void printresult(int id, int zadacha, std::mutex& coutmutex) {
     std::lock_guard<std::mutex> lock(coutmutex);
 
-    std::cout << "Поток " << id << " завершил задачу "
+    std::cout << "[Worker-" << id << "] обработал задачу "
               << zadacha << std::endl;
 }
 
