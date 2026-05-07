@@ -25,14 +25,18 @@ void printresult(int id, int zadacha, std::mutex& coutmutex) {
               << zadacha << std::endl;
 }
 
+void obrabotat(int id, int zadacha, std::mutex& coutmutex) {
+    std::this_thread::sleep_for(std::chrono::seconds(taskDelaySeconds));
+    printresult(id, zadacha, coutmutex);
+}
+
 void rabotaPotoka(int id,
                   TaskQueue& queue,
                   std::mutex& coutmutex) {
     int zadacha = 0;
 
     while (queue.pop(zadacha)) {
-        std::this_thread::sleep_for(std::chrono::seconds(taskDelaySeconds));
-        printresult(id, zadacha, coutmutex);
+        obrabotat(id, zadacha, coutmutex);
     }
 }
 
