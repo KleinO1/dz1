@@ -1,34 +1,21 @@
 #include <chrono>
-#include <condition_variable>
 #include <iostream>
-#include <queue>
 #include <thread>
 #include <vector>
 #include <mutex>
+
+#include "TaskQueue.h"
 
 const int tasksCount = 20;
 const int threadsCount = 3;
 const int taskDelaySeconds = 1;
 
-void dobavitZadachi(std::queue<int>& ochered,
-                    std::mutex& mtx,
-                    std::condition_variable& cv,
-                    bool& done) {
+void dobavitZadachi(TaskQueue& queue) {
     for (int i = 1; i <= tasksCount; ++i) {
-        {
-            std::lock_guard<std::mutex> lock(mtx);
-            ochered.push(i);
-        }
-
-        cv.notify_one();
+        queue.push(i);
     }
 
-    {
-        std::lock_guard<std::mutex> lock(mtx);
-        done = true;
-    }
-
-    cv.notify_all();
+    queue.stop();
 }
 
 void printresult(int id, int zadacha, std::mutex& coutmutex) {
@@ -39,46 +26,22 @@ void printresult(int id, int zadacha, std::mutex& coutmutex) {
 }
 
 void rabotaPotoka(int id,
-                  std::queue<int>& ochered,
-                  std::mutex& mtx,
-                  std::condition_variable& cv,
-                  bool& done,
+                  TaskQueue& queue,
                   std::mutex& coutmutex) {
-    while (true) {
-        int zadacha = 0;
+    int zadacha = 0;
 
-        {
-            std::unique_lock<std::mutex> lock(mtx);
-
-            cv.wait(lock, [&ochered, &done]() {
-                return !ochered.empty() || done;
-            });
-
-            if (ochered.empty() && done) {
-                break;
-            }
-
-            zadacha = ochered.front();
-            ochered.pop();
-        }
-
+    while (queue.pop(zadacha)) {
         std::this_thread::sleep_for(std::chrono::seconds(taskDelaySeconds));
         printresult(id, zadacha, coutmutex);
     }
 }
 
 void startworkers(std::vector<std::thread>& potoki,
-                  std::queue<int>& ochered,
-                  std::mutex& mtx,
-                  std::condition_variable& cv,
-                  bool& done,
+                  TaskQueue& queue,
                   std::mutex& coutmutex) {
     for (int i = 1; i <= threadsCount; ++i) {
         potoki.push_back(std::thread(rabotaPotoka, i,
-                                     std::ref(ochered),
-                                     std::ref(mtx),
-                                     std::ref(cv),
-                                     std::ref(done),
+                                     std::ref(queue),
                                      std::ref(coutmutex)));
     }
 }
@@ -90,15 +53,12 @@ void joinworkers(std::vector<std::thread>& potoki) {
 }
 
 int main() {
-    std::queue<int> ochered;
-    std::mutex mtx;
+    TaskQueue queue;
     std::mutex coutmutex;
-    std::condition_variable cv;
     std::vector<std::thread> potoki;
-    bool done = false;
 
-    startworkers(potoki, ochered, mtx, cv, done, coutmutex);
-    dobavitZadachi(ochered, mtx, cv, done);
+    startworkers(potoki, queue, coutmutex);
+    dobavitZadachi(queue);
     joinworkers(potoki);
 
     std::cout << "Все потоки закончили работу" << std::endl;

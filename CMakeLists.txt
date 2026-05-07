@@ -7,4 +7,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(dz1
         src/main.cpp
+        src/TaskQueue.cpp
 )
