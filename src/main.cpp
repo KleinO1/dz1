@@ -67,6 +67,8 @@ int main() {
     std::mutex coutmutex;
     std::vector<std::thread> potoki;
 
+    printline("Запуск очереди: 20 задач, 3 потока", coutmutex);
+
     startworkers(potoki, queue, coutmutex);
     dobavitZadachi(queue);
     joinworkers(potoki);
